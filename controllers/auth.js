@@ -41,7 +41,7 @@ exports.register =(req, res) => {
             else{
                 console.log(results);
                 return res.render('register',{
-                    message: 'User Rgistered'
+                    message: 'User Registered'
                 });
             }
         })

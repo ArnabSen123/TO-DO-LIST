@@ -1,69 +1,72 @@
-const express = require("express");
-const path = require('path');
-const mysql = require("mysql");
-const dotenv = require('dotenv');
-
-dotenv.config({path: './env'});
-
+const express = require('express');
 const app = express();
+const cors = require('cors');
+const dotenv = require('dotenv');
+dotenv.config();
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'password1#',
-    database: 'login'
-});
+const dbService = require('./dbService');
 
-const publicDirectory = path.join(__dirname,'./public')
-app.use(express.static(publicDirectory));
-
-app.use(express.urlencoded({extended : false}));
-
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended : false }));
 
-app.set('view engine', 'hbs');
 
-db.connect((error) => {
-    if(error){
-        console.log(error)
-    }
-    else{
-        console.log("MySQL Connected...")
-    }
+// create
+app.post('/insert', (request, response) => {
+    const { name } = request.body;
+    const db = dbService.getDbServiceInstance();
+    
+    const result = db.insertNewName(name);
+
+    result
+    .then(data => response.json({ data: data}))
+    .catch(err => console.log(err));
 });
 
-//Define routes
-app.use('/', require('./routes/pages'))
-app.use('/auth', require('./routes/auth'))
+// read
+app.get('/getAll', (request, response) => {
+    const db = dbService.getDbServiceInstance();
 
-app.listen(5001, () =>{
-    console.log("Server started on port 5001");
-});
-
-
-/*app.get("/",function(req,res){
-    res.sendFile(__dirname + "/index.hbs");
+    const result = db.getAllData();
+    
+    result
+    .then(data => response.json({data : data}))
+    .catch(err => console.log(err));
 })
 
-exports.index =(req, res) => {
-const bodyParser = require('body-parser');
-const encoder = bodyParser.urlencoded();
+// update
+app.patch('/update', (request, response) => {
+    const { id, name } = request.body;
+    const db = dbService.getDbServiceInstance();
 
-app.post("/", encoder, function(req,res){
-   var name = req.body.name;
-   var password = req.body.password;
-db.query("SELECT * FROM user WHERE name =? and password =? ",[name, password], function(error,results,fields){
-    if(results.length >0){
-        res.redirect("/welcome")
-    }
-    else{
-        console.log("/");
-    }
-    });
-    res.end();
+    const result = db.updateNameById(id, name);
+    
+    result
+    .then(data => response.json({success : data}))
+    .catch(err => console.log(err));
 });
 
-app.get("/welcome", function(req,res){
-    res.sendFile(__dirname+"/welcome.html")
+// delete
+app.delete('/delete/:id', (request, response) => {
+    const { id } = request.params;
+    const db = dbService.getDbServiceInstance();
+
+    const result = db.deleteRowById(id);
+    
+    result
+    .then(data => response.json({success : data}))
+    .catch(err => console.log(err));
+});
+
+app.get('/search/:name', (request, response) => {
+    const { name } = request.params;
+    const db = dbService.getDbServiceInstance();
+
+    const result = db.searchByName(name);
+    
+    result
+    .then(data => response.json({data : data}))
+    .catch(err => console.log(err));
 })
-}*/
+
+app.listen(5001, () => console.log('app is running'));

@@ -10,4 +10,8 @@ router.get("/register", (req, res) => {
     res.render("register");
 });
 
+router.get("/toDo", (req, res) => {
+    res.render("toDo");
+});
+
 module.exports = router;
